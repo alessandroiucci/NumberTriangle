@@ -88,9 +88,22 @@ public class NumberTriangle {
      *
      */
     public int retrieve(String path) {
-        // TODO implement this method
-        return -1;
+        NumberTriangle curr = this;
+
+        for (int i = 0; i < path.length(); i++) {
+            char direction = path.charAt(i);
+            if (direction == 'l') {
+                curr = curr.left;
+            } else if (direction == 'r') {
+                curr = curr.right;
+            } else {
+                throw new IllegalArgumentException("not valid path in: " + direction + "direction");
+            }
+        }
+
+        return curr.root;
     }
+
 
     /** Read in the NumberTriangle structure from a file.
      *
@@ -109,26 +122,34 @@ public class NumberTriangle {
         InputStream inputStream = NumberTriangle.class.getClassLoader().getResourceAsStream(fname);
         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
 
-
-        // TODO define any variables that you want to use to store things
-
-        // will need to return the top of the NumberTriangle,
-        // so might want a variable for that.
-        NumberTriangle top = null;
-
+        // Step 1: Read all lines and parse into integer lists
+        java.util.List<java.util.List<NumberTriangle>> rows = new java.util.ArrayList<>();
         String line = br.readLine();
+
         while (line != null) {
-
-            // remove when done; this line is included so running starter code prints the contents of the file
-            System.out.println(line);
-
-            // TODO process the line
-
-            //read the next line
+            String[] nums = line.trim().split("\\s+");
+            java.util.List<NumberTriangle> currentRow = new java.util.ArrayList<>();
+            for (String num : nums) {
+                currentRow.add(new NumberTriangle(Integer.parseInt(num)));
+            }
+            rows.add(currentRow);
             line = br.readLine();
         }
         br.close();
-        return top;
+
+        // Step 2: Connect nodes bottom-up
+        for (int i = rows.size() - 2; i >= 0; i--) {
+            java.util.List<NumberTriangle> upper = rows.get(i);
+            java.util.List<NumberTriangle> lower = rows.get(i + 1);
+
+            for (int j = 0; j < upper.size(); j++) {
+                upper.get(j).setLeft(lower.get(j));
+                upper.get(j).setRight(lower.get(j + 1));
+            }
+        }
+
+        // Step 3: Return the top of the triangle
+        return rows.get(0).get(0);
     }
 
     public static void main(String[] args) throws IOException {
